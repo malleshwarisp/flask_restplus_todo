@@ -10,7 +10,7 @@ def create_tasks_table():
         id INTEGER PRIMARY KEY,
         task TEXT,
         due_by DATE,
-        status VARCHAR(20)
+        status INTEGER
     )"""
     )
     db_con.commit()

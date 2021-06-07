@@ -18,22 +18,20 @@ def create_task(db: Connection, task: str, due_by: date, status=Status.NOTSTARTE
     )
     db.commit()
     result = cur.execute(
-        "SELECT (id, task, due_by, status) FROM tasks WHERE id=?", (cur.lastrowid,)
+        "SELECT id, task, due_by, status FROM tasks WHERE id=?", (cur.lastrowid,)
     )
     return result.fetchone()
 
 
 def get_all_tasks(db: Connection):
     cur = db.cursor()
-    results = cur.execute("SELECT (id, task, due_by, status) FROM tasks")
+    results = cur.execute("SELECT id, task, due_by, status FROM tasks")
     return results.fetchall()
 
 
 def get_task(db: Connection, id: int):
     cur = db.cursor()
-    result = cur.execute(
-        "SELECT (id, task, due_by, status) FROM tasks WHERE id=?", (id,)
-    )
+    result = cur.execute("SELECT id, task, due_by, status FROM tasks WHERE id=?", (id,))
     return result.fetchone()
 
 
@@ -47,7 +45,7 @@ def update_task(db: Connection, id: int, task: str, due_by: date, status: Status
     )
     db.commit()
     result = cur.execute(
-        "SELECT (id, task, due_by, status) FROM tasks WHERE id=?", (cur.lastrowid,)
+        "SELECT id, task, due_by, status FROM tasks WHERE id=?", (cur.lastrowid,)
     )
     return result.fetchone()
 
@@ -58,6 +56,8 @@ def update_status(db: Connection, id: int, status: Status):
     cur = db.cursor()
     cur.execute("UPDATE tasks SET  status=? WHERE id=?", (status.value, id))
     db.commit()
+    result = cur.execute("SELECT id, task, due_by, status FROM tasks WHERE id=?", (id,))
+    return result.fetchone()
 
 
 def delete_task(db: Connection, id: int):
@@ -66,12 +66,13 @@ def delete_task(db: Connection, id: int):
     cur = db.cursor()
     cur.execute("DELETE FROM tasks WHERE id=?", (id,))
     db.commit()
+    return True
 
 
 def tasks_by_due_date(db: Connection, due_by: date):
     cur = db.cursor()
     result = cur.execute(
-        "SELECT (id, task, due_by, status) FROM tasks WHERE due_by=?", (due_by,)
+        "SELECT id, task, due_by, status FROM tasks WHERE due_by=?", (due_by,)
     )
     return result.fetchall()
 
@@ -79,7 +80,8 @@ def tasks_by_due_date(db: Connection, due_by: date):
 def tasks_overdue(db: Connection):
     cur = db.cursor()
     result = cur.execute(
-        "SELECT (id, task, due_by, status) FROM tasks WHERE due_by=?", (date.today(),)
+        "SELECT id, task, due_by, status FROM tasks WHERE due_by<? AND status != ?",
+        (date.today(), Status.FINISHED.value),
     )
     return result.fetchall()
 
@@ -87,7 +89,18 @@ def tasks_overdue(db: Connection):
 def tasks_finished(db: Connection):
     cur = db.cursor()
     result = cur.execute(
-        "SELECT (id, task, due_by, status) FROM tasks WHERE status=?",
+        "SELECT id, task, due_by, status FROM tasks WHERE status=?",
         (Status.FINISHED.value,),
     )
     return result.fetchall()
+
+
+def task_to_dict(task):
+    if task == None:
+        return None
+    return {
+        "id": task[0],
+        "task": task[1],
+        "due_by": task[2],
+        "status": Status(task[3]).name,
+    }
