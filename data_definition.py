@@ -31,7 +31,6 @@ def create_users_table():
 
 
 def create_all_tables():
-    create_users_table()
     create_tasks_table()
     close_db()
 
