@@ -31,6 +31,7 @@ status = api.model(
 
 
 @api.route("/")
+@api.response(401, "Unauthorized")
 class TodoList(Resource):
     """Shows a list of all todos, and lets you POST to add new tasks"""
 
@@ -46,7 +47,7 @@ class TodoList(Resource):
 
         return output
 
-    @api.doc("create_todo")
+    @api.doc("create_todo", security="Basic Auth")
     @api.expect(todo)
     @authentication([Permission.WRITE])
     @api.marshal_with(todo, code=201)
@@ -67,11 +68,12 @@ class TodoList(Resource):
 
 @api.route("/<int:id>")
 @api.response(404, "Todo not found")
+@api.response(401, "Unauthorized")
 @api.param("id", "The task identifier")
 class Todo(Resource):
     """Show a single todo item and lets you delete them"""
 
-    @api.doc("get_todo")
+    @api.doc("get_todo", security="Basic Auth")
     @authentication([Permission.READ])
     @api.marshal_with(todo)
     def get(self, id):
@@ -111,11 +113,13 @@ class Todo(Resource):
 
 
 @api.route("/due/<string:due_date>")
+@api.response(401, "Unauthorized")
 class TodoDueDate(Resource):
     @api.doc("get_todo_by_due_date", security="Basic Auth")
     @authentication([Permission.READ])
     @api.marshal_list_with(todo)
     def get(self, due_date):
+        """Get Tasks for given Due date"""
         try:
             tasks = tasks_by_due_date(get_db(), date.fromisoformat(due_date))
             return list(map(task_to_dict, tasks))
@@ -124,11 +128,14 @@ class TodoDueDate(Resource):
 
 
 @api.route("/overdue")
+@api.response(401, "Unauthorized")
+@api.response(404, "Todo not found")
 class TodoOverDue(Resource):
     @api.doc("Overdue Todos", security="Basic Auth")
     @authentication([Permission.READ])
     @api.marshal_list_with(todo)
     def get(self):
+        """Get Tasks which are Overdue"""
         try:
             tasks = tasks_overdue(get_db())
             print(tasks)
@@ -138,21 +145,25 @@ class TodoOverDue(Resource):
 
 
 @api.route("/finished")
+@api.response(401, "Unauthorized")
 class TodoFinished(Resource):
     @api.doc("Finished Todos", security="Basic Auth")
     @authentication([Permission.READ])
     @api.marshal_list_with(todo)
     def get(self):
+        """Get completed Tasks"""
         tasks = tasks_finished(get_db())
         return list(map(task_to_dict, tasks))
 
 
 @api.route("/update_status/<int:id>")
+@api.response(401, "Unauthorized")
 class TodoStatusUpdate(Resource):
     @api.doc("Update Todo Status", security="Basic Auth")
     @authentication([Permission.WRITE])
     @api.expect(status)
     def patch(self, id):
+        """Change status of a task"""
         try:
             task = update_status(get_db(), id, Status[api.payload["status"]])
             if not task:
