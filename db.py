@@ -13,4 +13,6 @@ def get_db():
 
 def close_db():
     global con
-    con.close()
+    if con:
+        con.close()
+    con = None
