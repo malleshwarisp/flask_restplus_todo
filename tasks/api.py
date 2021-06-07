@@ -1,6 +1,7 @@
-import flask_restplus
 from db import get_db
 from flask_restplus import Namespace, Resource, fields
+from users.authentication import authentication
+from users.permissions import Permission
 
 from .db_utils import *
 
@@ -33,7 +34,8 @@ status = api.model(
 class TodoList(Resource):
     """Shows a list of all todos, and lets you POST to add new tasks"""
 
-    @api.doc("list_todos")
+    @api.doc("list_todos", security="Basic Auth")
+    @authentication([Permission.READ])
     @api.marshal_list_with(todo)
     def get(self):
         """List all tasks"""
@@ -46,6 +48,7 @@ class TodoList(Resource):
 
     @api.doc("create_todo")
     @api.expect(todo)
+    @authentication([Permission.WRITE])
     @api.marshal_with(todo, code=201)
     def post(self):
         """Create a new task"""
@@ -69,6 +72,7 @@ class Todo(Resource):
     """Show a single todo item and lets you delete them"""
 
     @api.doc("get_todo")
+    @authentication([Permission.READ])
     @api.marshal_with(todo)
     def get(self, id):
         """Fetch a given resource"""
@@ -77,7 +81,8 @@ class Todo(Resource):
             api.abort(404, f"Invalid task with id: {id}")
         return task_to_dict(task)
 
-    @api.doc("delete_todo")
+    @api.doc("delete_todo", security="Basic Auth")
+    @authentication([Permission.WRITE])
     @api.response(204, "Todo deleted")
     def delete(self, id):
         """Delete a task given its identifier"""
@@ -85,7 +90,9 @@ class Todo(Resource):
             return "", 204
         api.abort(404, f"Invalid task with id: {id}")
 
+    @api.doc("update_todo", security="Basic Auth")
     @api.expect(todo)
+    @authentication([Permission.WRITE])
     @api.marshal_with(todo)
     def put(self, id):
         """Update a task given its identifier"""
@@ -105,7 +112,8 @@ class Todo(Resource):
 
 @api.route("/due/<string:due_date>")
 class TodoDueDate(Resource):
-    @api.doc("get_todo_by_due_date")
+    @api.doc("get_todo_by_due_date", security="Basic Auth")
+    @authentication([Permission.READ])
     @api.marshal_list_with(todo)
     def get(self, due_date):
         try:
@@ -117,7 +125,8 @@ class TodoDueDate(Resource):
 
 @api.route("/overdue")
 class TodoOverDue(Resource):
-    @api.doc("Overdue Todos")
+    @api.doc("Overdue Todos", security="Basic Auth")
+    @authentication([Permission.READ])
     @api.marshal_list_with(todo)
     def get(self):
         try:
@@ -130,7 +139,8 @@ class TodoOverDue(Resource):
 
 @api.route("/finished")
 class TodoFinished(Resource):
-    @api.doc("Finished Todos")
+    @api.doc("Finished Todos", security="Basic Auth")
+    @authentication([Permission.READ])
     @api.marshal_list_with(todo)
     def get(self):
         tasks = tasks_finished(get_db())
@@ -139,7 +149,8 @@ class TodoFinished(Resource):
 
 @api.route("/update_status/<int:id>")
 class TodoStatusUpdate(Resource):
-    @api.doc("Update Todo Status")
+    @api.doc("Update Todo Status", security="Basic Auth")
+    @authentication([Permission.WRITE])
     @api.expect(status)
     def patch(self, id):
         try:

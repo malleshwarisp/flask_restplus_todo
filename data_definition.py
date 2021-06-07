@@ -20,12 +20,13 @@ def create_users_table():
     cur = db_con.cursor()
     cur.execute(
         """CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY,
-        username VARCHAR(30),
-        password_hash VARCHAR(66),
-        permission INTEGER
-    )"""
+            id INTEGER PRIMARY KEY,
+            username VARCHAR(30),
+            password_hash BLOB,
+            permission INTEGER
+        )"""
     )
+    cur.execute("CREATE UNIQUE INDEX idx_username ON users(username)")
     db_con.commit()
 
 
