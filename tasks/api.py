@@ -138,7 +138,6 @@ class TodoOverDue(Resource):
         """Get Tasks which are Overdue"""
         try:
             tasks = tasks_overdue(get_db())
-            print(tasks)
             return list(map(task_to_dict, tasks))
         except ValueError:
             api.abort(422, "Invalid Date")

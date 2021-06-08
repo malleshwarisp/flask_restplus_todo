@@ -14,7 +14,7 @@ def create_user(
     password_hash = hash_password(password)
     permission_value = 0
     for permission in permissions:
-        permission_value |= 1 << Permission[permission].value
+        permission_value |= Permission[permission].value
     try:
         cur.execute(
             "INSERT INTO users (username, password_hash, permission) VALUES (?,?,?)",
@@ -50,11 +50,7 @@ def user_to_dict(user):
         return None
     permissions = []
     permission_value = user[3]
-    i = 0
-    while permission_value > 0:
-        if permission_value % 2:
-            permissions.append(Permission(i).name)
-        permission_value //= 2
-        i += 1
-
+    for p in Permission:
+        if permission_value & p.value == p.value:
+            permissions.append(p.name)
     return {"id": user[0], "username": user[1], "permission": permissions}

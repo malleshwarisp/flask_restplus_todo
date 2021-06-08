@@ -36,6 +36,7 @@ user_list = api.model(
 
 
 @api.route("/")
+@api.response(401, "Unauthorized")
 class UserList(Resource):
     """Shows a list of all the users and lets you create a new user"""
 
@@ -43,6 +44,7 @@ class UserList(Resource):
     @authentication(permissions=[Permission.ADMIN])
     @api.marshal_list_with(user_list)
     def get(self):
+        """List all users"""
         users = get_users(get_db())
         return list(map(user_to_dict, users))
 
@@ -51,11 +53,11 @@ class UserList(Resource):
     @authentication(permissions=[Permission.ADMIN])
     @api.marshal_with(user_list)
     def post(self):
+        """Create a new User"""
         req = api.payload
         result = create_user(
             get_db(), req["username"], req["password"], req["permission"]
         )
-        print(result)
         if not result:
             api.abort(409, "Username already exists")
         return user_to_dict(result)

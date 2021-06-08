@@ -23,7 +23,7 @@ def authentication(permissions: List[Permission]):
                 if not check_password(auth_parts[1], user[2]):
                     return {"message": "Unauthorized"}, 401
                 for permission in permissions:
-                    if user[3] & 1 << permission.value != 1 << permission.value:
+                    if user[3] & permission.value != permission.value:
                         return {"message": "Invalid Permissions"}, 401
 
                 return f(*args, **kwargs)

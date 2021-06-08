@@ -2,6 +2,6 @@ from enum import Enum
 
 
 class Permission(Enum):
-    READ = 0
-    WRITE = 1
-    ADMIN = 2
+    READ = 1
+    WRITE = 2
+    ADMIN = 4
